@@ -1,9 +1,13 @@
-import numpy as np
-import pandas as pd
-from litetorch.nn.sequential import Sequential
-from litetorch.nn.linear import Linear
-from litetorch.nn.activation import ReLU
-from litetorch.loss import MSELoss
-from litetorch.optim import SGD
+import typer
+from src.multilayer_perceptron.split import split_cli
+from src.multilayer_perceptron.train import train_cli
+from src.multilayer_perceptron.predict import predict_cli
 
 
+app = typer.Typer()
+app.add_typer(split_cli, name="split")
+app.add_typer(train_cli, name="train")
+app.add_typer(predict_cli, name="predict")
+
+if __name__ == "__main__":
+    app()
