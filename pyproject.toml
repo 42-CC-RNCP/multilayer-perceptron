@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "REPLACE_WITH_YOUR_PROJECT_NAME"
+version = "0.1.0"
+description = ""
+authors = ["REPLACE_WITH_YOUR_NAME <REPLACE_WITH_YOUR_EMAIL>"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+numpy = "*"
+pandas = "*"
+matplotlib = "*"
+scikit-learn = "*"
+seaborn = "*"
+torch = "*"
+datasets = "*"
+plotly = "*"
+tqdm = "*"
+ipywidgets = "*"
+notebook = "*"
+jupyterlab = "*"
+litetorch = { git = "https://github.com/42-CC-RNCP/litetorch.git", branch = "main" }
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
