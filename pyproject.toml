@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "REPLACE_WITH_YOUR_PROJECT_NAME"
+name = "multilayer_perceptron"
 version = "0.1.0"
 description = ""
-authors = ["REPLACE_WITH_YOUR_NAME <REPLACE_WITH_YOUR_EMAIL>"]
+authors = ["Lea Yeh <lea.yeh.ml@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.12"
