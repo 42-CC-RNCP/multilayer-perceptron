@@ -24,8 +24,8 @@ def start(dataset: str = "dataset.csv", split_ratio: float = 0.8, output_dir: st
     train_data, val_data = train_val_split(data, val_size=1 - split_ratio, shuffle=True)
 
     # Save the train and validation data as npy files
-    np.save(os.path.join(output_dir, "train_data.npy"), train_data)
-    np.save(os.path.join(output_dir, "val_data.npy"), val_data)
+    np.save(os.path.join(output_dir, "train_data.npy"), train_data, allow_pickle=True)
+    np.save(os.path.join(output_dir, "val_data.npy"), val_data, allow_pickle=True)
     print(f"Train and validation data saved to {output_dir}.")
     print(f"Train data shape: {train_data.shape}")
     print(f"Validation data shape: {val_data.shape}")
