@@ -22,6 +22,9 @@ all: $(NAME)
 clean:
 	@echo "Cleaning up..."
 	@rm -rf **/*/__pycache__
+	@rm -rf **/*.npy
+	@rm -rf **/*.pkl
+	@rm -rf **/*.json
 
 fclean: clean
 	@echo "Removing virtual environment..."
