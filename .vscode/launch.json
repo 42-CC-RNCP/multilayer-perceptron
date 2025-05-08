@@ -1,0 +1,53 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Poetry: split",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "mlp.py",
+            "args": [
+                "predict",
+                "start"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "/workspace",
+            "env": {
+                "PATH": "/root/.local/bin:${env:PATH}"
+            }
+        },
+        {
+            "name": "Debug: train start",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "mlp.py",
+            "args": [
+                "train",
+                "start"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "/workspace",
+            "env": {
+                "PATH": "/root/.local/bin:${env:PATH}"
+            }
+        },
+        {
+            "name": "Poetry: predict",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "mlp.py",
+            "args": [
+                "predict",
+                "run"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "/workspace",
+            "env": {
+                "PATH": "/root/.local/bin:${env:PATH}"
+            }
+        }
+    ]
+}
