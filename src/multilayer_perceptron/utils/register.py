@@ -1,6 +1,4 @@
-from litetorch.loss.binary_cross_entropy import BinaryCrossEntropyLoss
-from litetorch.loss.cross_entropy import CrossEntropyLoss
-from litetorch.loss.mse import MSELoss
+from litetorch.nn.loss import *
 from litetorch.optim.SGD import SGD
 from litetorch.nn.activation import *
 
