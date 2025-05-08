@@ -21,9 +21,11 @@ all: $(NAME)
 
 clean:
 	@echo "Cleaning up..."
-	@rm -rf **/*/__pycache__
-	@rm -rf **/*.npz
-	@rm -rf **/*.json
+	@find . -type d -name "__pycache__" -exec rm -rf {} +
+	@find . -type d -name ".pytest_cache" -exec rm -rf {} +
+	@find . -type f -name "*.npz" -exec rm -rf {} +
+	@find . -type f -name "*.npy" -exec rm -rf {} +
+	@find . -type d -empty -delete
 
 fclean: clean
 	@echo "Removing virtual environment..."
