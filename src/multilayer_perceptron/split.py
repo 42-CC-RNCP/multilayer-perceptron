@@ -12,7 +12,7 @@ def start(
         dataset: str = "dataset.csv",
         val_size: float = 0.0,
         test_size: float = 0.2,
-        output_dir: str = "data"):
+        output_dir: str = "data/split"):
     """
     Start the split process.
     """
