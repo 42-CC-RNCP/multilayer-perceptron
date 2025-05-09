@@ -18,8 +18,9 @@ tqdm = "*"
 ipywidgets = "*"
 notebook = "*"
 jupyterlab = "*"
-litetorch = { git = "https://github.com/42-CC-RNCP/litetorch.git", branch = "main" }
 typer = "^0.15.2"
+litetorch = { git = "https://github.com/42-CC-RNCP/litetorch.git", branch = "main" }
+sklite = { git = "https://github.com/42-CC-RNCP/sklite.git", branch = "main" }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
