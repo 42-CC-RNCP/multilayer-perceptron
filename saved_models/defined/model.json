@@ -1,0 +1,20 @@
+{
+    "architecture": [
+        {
+            "type": "Linear",
+            "in_features": 31,
+            "out_features": 5,
+            "bias": true
+        },
+        {
+            "type": "ReLU"
+        },
+        {
+            "type": "Linear",
+            "in_features": 5,
+            "out_features": 1,
+            "bias": true
+        }
+    ],
+    "parameters": {}
+}
