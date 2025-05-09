@@ -1,109 +1,121 @@
 import os
 import typer
 import numpy as np
-from typing import Optional
+import pandas as pd
+from typing import Optional, List
 from datetime import datetime
 from litetorch.nn.sequential import Sequential
+from litetorch.nn.linear import Linear
+from litetorch.nn.activation import ReLU
+from litetorch.data.split import train_val_split
 from litetorch.data.dataloader import DataLoader
 from litetorch.training.trainer import Trainer
+from sklite.preprocessing import LabelEncoder
 from .utils.register import LOSS_REGISTRY, ACTICATION_REGISTRY, OPTIMIZER_REGISTRY
 
 
 train_cli = typer.Typer()
 
-def load_as_dataloader(file_path: str, target_idx: int):
-    if not os.path.exists(file_path):
-        return None
-    data = np.load(file_path, allow_pickle=True)["data"]
-    X = np.delete(data, target_idx, axis=1)
-    y = data[:, target_idx]
-    return DataLoader(X, y, shuffle=True)
+TARGET_FEATURE = "Diagnosis"
+COLUMNS_NAME = [
+    "ID",
+    "Diagnosis",
+    "Mean Radius",
+    "Mean Texture",
+    "Mean Perimeter",
+    "Mean Area",
+    "Mean Smoothness",
+    "Mean Compactness",
+    "Mean Concavity",
+    "Mean Concave Points",
+    "Mean Symmetry",
+    "Mean Fractal Dimension",
+    "Radius SE",
+    "Texture SE",
+    "Perimeter SE",
+    "Area SE",
+    "Smoothness SE",
+    "Compactness SE",
+    "Concavity SE",
+    "Concave Points SE",
+    "Symmetry SE",
+    "Fractal Dimension SE",
+    "Worst Radius",
+    "Worst Texture",
+    "Worst Perimeter",
+    "Worst Area",
+    "Worst Smoothness",
+    "Worst Compactness",
+    "Worst Concavity",
+    "Worst Concave Points",
+    "Worst Symmetry",
+    "Worst Fractal Dimension",
+]
 
 
 @train_cli.command()
 def start(
-    train_filepath: str = "data/train_data.npz",
-    val_filepath: Optional[str] = "data/val_data.npz",
-    target_idx: int = 0,
-    model_path: str = "saved_models/model.json",
+    model_path: str = "saved_models/defined/model.json",
+    output_dir: str = "saved_models/trained",
+    train_filepath: str = "data/split/train_data.npz",
     epochs: int = 10,
-    loss_fn: str = "cross_entropy",
-    optimizer_fn: str = "sgd"):
-    """
-    Start the training process.
-    """
+    loss_fn: str = "binary_cross_entropy",
+    optimizer_fn: str = "sgd",
+):
+    # Check the input parameters
+    if not os.path.exists(train_filepath):
+        raise FileNotFoundError(f"Train data {train_filepath} not found.")
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Model {model_path} not found.")
+    if loss_fn not in LOSS_REGISTRY.keys():
+        raise ValueError(f"Loss function {loss_fn} is not supported.")
+    if optimizer_fn not in OPTIMIZER_REGISTRY.keys():
+        raise ValueError(f"Optimizer {optimizer_fn} is not supported.")
 
-    train_loader = load_as_dataloader(train_filepath, target_idx)
-    val_loader = load_as_dataloader(val_filepath, target_idx)
+    # Load training data and split into train and validation sets
+    data = np.load(train_filepath, allow_pickle=True)["data"]
+    data = pd.DataFrame(data, columns=COLUMNS_NAME)
+    data = LabelEncoder(columns=["Diagnosis"]).fit(data).transform(data)
+    train_data, val_data = train_val_split(data, val_size=0.2, shuffle=False)
+    train_data = pd.DataFrame(train_data, columns=COLUMNS_NAME)
+    val_data = pd.DataFrame(val_data, columns=COLUMNS_NAME)
 
+    # Create the DataLoader for training and validation
+    train_X: np.ndarray = train_data.drop(columns=[TARGET_FEATURE]).values
+    train_y: np.ndarray = train_data[TARGET_FEATURE].values
+    train_loader = DataLoader(
+        train_X,
+        train_y,
+        batch_size=32,
+        shuffle=True,
+    )
+    val_X: np.ndarray = val_data.drop(columns=[TARGET_FEATURE]).values
+    val_y: np.ndarray = val_data[TARGET_FEATURE].values
+    val_loader = DataLoader(
+        val_X,
+        val_y,
+        batch_size=32,
+        shuffle=False,
+    )
+
+    # Load the model and create the optimizer and loss function
     model = Sequential.load(model_path)
+    optimizer = OPTIMIZER_REGISTRY[optimizer_fn](model.parameters())
+    loss = LOSS_REGISTRY[loss_fn]()
 
+    # Create the trainer and start training
     trainer = Trainer(
         model,
-        OPTIMIZER_REGISTRY[optimizer_fn],
-        LOSS_REGISTRY[loss_fn],
+        optimizer,
+        loss,
         train_loader,
         epochs,
         val_loader
     )
     trainer.train()
-    trainer.save_model(os.path.join('saved_models', f'trained_model_{datetime.now()}'))
 
-# @train_cli.command()
-# def start(
-#     train_data: str = "data/train_data.npz",
-#     test_data: str = "data/test_data.npz",
-#     val_data: str = "data/val_data.npz",
-#     target_idx: int = 0,
-#     model_path: str = "saved_models/model.json",
-#     epochs: int = 10,
-#     loss_function: str = "cross_entropy",
-#     optimizer_function: str = "sgd"):
-#     """
-#     Start the training process.
-#     """
-
-#     load_to_dataloader()
-#     # Load data from file path
-#     train_data = np.load(train_data, allow_pickle=True)["data"]
-#     test_data = np.load(test_data, allow_pickle=True)["data"]
-#     val_data = np.load(val_data, allow_pickle=True)["data"]
-
-
-#     # Separate the features and target
-#     X_train = np.delete(train_data, target_idx, axis=1)
-#     y_train = train_data[:, target_idx]
-#     X_val = np.delete(val_data, target_idx, axis=1)
-#     y_val = val_data[:, target_idx]
-
-#     if loss_function not in LOSS_REGISTRY.keys():
-#         raise ValueError(f"Loss function {loss_function} is not supported.")
-    
-#     if optimizer_function not in OPTIMIZER_REGISTRY.keys():
-#         raise ValueError(f"Optimizer {optimizer_function} is not supported.") 
-
-#     # Print the training and validation data shapes
-#     print(f"Training data shape: {X_train.shape}")
-#     print(f"Validation data shape: {X_val.shape}")
-#     print(f"Training target shape: {y_train.shape}")
-#     print(f"Validation target shape: {y_val.shape}")
-#     print(f"Training with {epochs} epochs using {loss_function} loss and {optimizer} optimizer.")
-
-#     model : Sequential = Sequential().load(model_path)
-#     print("model loaded successfully.")
-#     print(model)
-
-#     optimizer = OPTIMIZER_REGISTRY[optimizer_function](model.parameters())
-#     loss = LOSS_REGISTRY[loss_function]()
-
-#     for epoch in range(epochs):
-#         print(f"Epoch {epoch + 1}/{epochs}...")
-#         y_pred = model(X_train)
-#         loss(y_pred, )
-
-#     model_name = f"model_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-#     model.save(os.path.join('saved_models', model_name))
-#     print(f"Training completed, model saved to {os.path.join('saved_models', model_name)}")
+    # Save the trained model
+    trainer.save_model(os.path.join(output_dir, f'{trainer}T{datetime.now().strftime("%Y%m%d%H%M%S")}.json'))
 
 
 if __name__ == "__main__":
