@@ -115,6 +115,7 @@ def start(
     trainer.train()
 
     # Save the trained model
+    os.makedirs(output_dir, exist_ok=True)
     trainer.save_model(os.path.join(output_dir, f'{trainer}T{datetime.now().strftime("%Y%m%d%H%M%S")}.json'))
 
 
