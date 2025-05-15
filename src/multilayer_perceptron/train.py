@@ -9,72 +9,12 @@ from litetorch.nn.activation import ReLU
 from litetorch.data.split import train_val_split
 from litetorch.data.dataloader import DataLoader
 from litetorch.training.trainer import Trainer
-from sklite.preprocessing import LabelEncoder, StandardScaler
+from .utils.preprocess import preprocess
 from .utils.register import LOSS_REGISTRY, ACTICATION_REGISTRY, OPTIMIZER_REGISTRY
+from .config import TARGET_FEATURE, DATASET_COLUMNS
 
 
 train_cli = typer.Typer()
-
-TARGET_FEATURE = "Diagnosis"
-COLUMNS_NAME = [
-    "ID",
-    "Diagnosis",
-    "Mean Radius",
-    "Mean Texture",
-    "Mean Perimeter",
-    "Mean Area",
-    "Mean Smoothness",
-    "Mean Compactness",
-    "Mean Concavity",
-    "Mean Concave Points",
-    "Mean Symmetry",
-    "Mean Fractal Dimension",
-    "Radius SE",
-    "Texture SE",
-    "Perimeter SE",
-    "Area SE",
-    "Smoothness SE",
-    "Compactness SE",
-    "Concavity SE",
-    "Concave Points SE",
-    "Symmetry SE",
-    "Fractal Dimension SE",
-    "Worst Radius",
-    "Worst Texture",
-    "Worst Perimeter",
-    "Worst Area",
-    "Worst Smoothness",
-    "Worst Compactness",
-    "Worst Concavity",
-    "Worst Concave Points",
-    "Worst Symmetry",
-    "Worst Fractal Dimension",
-]
-
-
-def preprocess(data: pd.DataFrame, target_feature: str = TARGET_FEATURE) -> pd.DataFrame:
-    # 1. Drop the ID column
-    data = data.drop(columns=["ID"])
-
-    # 2. Encode the target feature
-    label_encoder = LabelEncoder(columns=[target_feature])
-    label_encoder.fit(data)
-    data = label_encoder.transform(data)
-
-    # 3. Split the data into features and target
-    X = data.drop(columns=[target_feature])
-    y = data[target_feature]
-
-    # 4. Normalize the features
-    scaler = StandardScaler(columns=X.columns.tolist())
-    scaler.fit(X)
-    X = scaler.transform(X)
-
-    # 5. Convert the data back to a DataFrame
-    data = pd.DataFrame(X, columns=COLUMNS_NAME[2:])
-    data[target_feature] = y
-    data = data.astype({target_feature: "int"})
-    return data
 
 
 @train_cli.command()
@@ -98,10 +38,10 @@ def start(
 
     # Load training data and split into train and validation sets
     data = np.load(train_filepath, allow_pickle=True)["data"]
-    data = pd.DataFrame(data, columns=COLUMNS_NAME)
+    data = pd.DataFrame(data, columns=DATASET_COLUMNS)
 
     # Preprocess the data
-    data = preprocess(data, target_feature=TARGET_FEATURE)
+    data = preprocess(data)
     train_data, val_data = train_val_split(data, val_size=0.2, shuffle=False)
     train_data = pd.DataFrame(train_data, columns=data.columns)
     val_data = pd.DataFrame(val_data, columns=data.columns)
