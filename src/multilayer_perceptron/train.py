@@ -2,7 +2,6 @@ import os
 import typer
 import numpy as np
 import pandas as pd
-from typing import Optional, List
 from datetime import datetime
 from litetorch.nn.sequential import Sequential
 from litetorch.nn.linear import Linear
@@ -10,7 +9,7 @@ from litetorch.nn.activation import ReLU
 from litetorch.data.split import train_val_split
 from litetorch.data.dataloader import DataLoader
 from litetorch.training.trainer import Trainer
-from sklite.preprocessing import LabelEncoder
+from sklite.preprocessing import LabelEncoder, StandardScaler
 from .utils.register import LOSS_REGISTRY, ACTICATION_REGISTRY, OPTIMIZER_REGISTRY
 
 
@@ -53,12 +52,37 @@ COLUMNS_NAME = [
 ]
 
 
+def preprocess(data: pd.DataFrame, target_feature: str = TARGET_FEATURE) -> pd.DataFrame:
+    # 1. Drop the ID column
+    data = data.drop(columns=["ID"])
+
+    # 2. Encode the target feature
+    label_encoder = LabelEncoder(columns=[target_feature])
+    label_encoder.fit(data)
+    data = label_encoder.transform(data)
+
+    # 3. Split the data into features and target
+    X = data.drop(columns=[target_feature])
+    y = data[target_feature]
+
+    # 4. Normalize the features
+    scaler = StandardScaler(columns=X.columns.tolist())
+    scaler.fit(X)
+    X = scaler.transform(X)
+
+    # 5. Convert the data back to a DataFrame
+    data = pd.DataFrame(X, columns=COLUMNS_NAME[2:])
+    data[target_feature] = y
+    data = data.astype({target_feature: "int"})
+    return data
+
+
 @train_cli.command()
 def start(
     model_path: str = "saved_models/defined/model.json",
     output_dir: str = "saved_models/trained",
     train_filepath: str = "data/split/train_data.npz",
-    epochs: int = 10,
+    epochs: int = 1000,
     loss_fn: str = "binary_cross_entropy",
     optimizer_fn: str = "sgd",
 ):
@@ -75,10 +99,12 @@ def start(
     # Load training data and split into train and validation sets
     data = np.load(train_filepath, allow_pickle=True)["data"]
     data = pd.DataFrame(data, columns=COLUMNS_NAME)
-    data = LabelEncoder(columns=["Diagnosis"]).fit(data).transform(data)
+
+    # Preprocess the data
+    data = preprocess(data, target_feature=TARGET_FEATURE)
     train_data, val_data = train_val_split(data, val_size=0.2, shuffle=False)
-    train_data = pd.DataFrame(train_data, columns=COLUMNS_NAME)
-    val_data = pd.DataFrame(val_data, columns=COLUMNS_NAME)
+    train_data = pd.DataFrame(train_data, columns=data.columns)
+    val_data = pd.DataFrame(val_data, columns=data.columns)
 
     # Create the DataLoader for training and validation
     train_X: np.ndarray = train_data.drop(columns=[TARGET_FEATURE]).values
@@ -89,6 +115,7 @@ def start(
         batch_size=32,
         shuffle=True,
     )
+
     val_X: np.ndarray = val_data.drop(columns=[TARGET_FEATURE]).values
     val_y: np.ndarray = val_data[TARGET_FEATURE].values
     val_loader = DataLoader(
