@@ -2,7 +2,7 @@
     "architecture": [
         {
             "type": "Linear",
-            "in_features": 31,
+            "in_features": 30,
             "out_features": 5,
             "bias": true
         },
