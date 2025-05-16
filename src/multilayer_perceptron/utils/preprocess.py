@@ -13,6 +13,7 @@ def preprocess(data: pd.DataFrame) -> pd.DataFrame:
     label_encoder = LabelEncoder(columns=[TARGET_FEATURE])
     label_encoder.fit(data)
     data = label_encoder.transform(data)
+    print(label_encoder)
 
     # 3. Split the data into features and target
     X = data.drop(columns=[TARGET_FEATURE])

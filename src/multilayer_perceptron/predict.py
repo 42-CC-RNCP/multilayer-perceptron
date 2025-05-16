@@ -38,7 +38,7 @@ def run(
     # Convert the probability predictions to binary labels
     y_pred = y_pred.flatten()
     y_pred_labels = (y_pred >= 0.5).astype(int)
-    df_y_pred = pd.DataFrame({"probability": y_pred, "predicted_label": y_pred_labels})
+    df_y_pred = pd.DataFrame({"probability": y_pred, "predict": y_pred_labels, "actual": y})
     
     metric = AccuracyScore()
     accuracy_score_value = metric(y, y_pred_labels)
