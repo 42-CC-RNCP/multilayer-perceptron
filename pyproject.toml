@@ -18,9 +18,11 @@ tqdm = "*"
 ipywidgets = "*"
 notebook = "*"
 jupyterlab = "*"
-typer = "^0.15.2"
+typer = "0.9.0"
+click = ">=8.0,<8.2"
 litetorch = { git = "https://github.com/42-CC-RNCP/litetorch.git", branch = "main" }
 sklite = { git = "https://github.com/42-CC-RNCP/sklite.git", branch = "main" }
+tensorboard = "^2.19.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
