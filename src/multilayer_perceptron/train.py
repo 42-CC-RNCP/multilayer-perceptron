@@ -2,39 +2,29 @@ import os
 import typer
 import numpy as np
 import pandas as pd
+from typing import Dict
 from datetime import datetime
 from litetorch.nn.sequential import Sequential
-from litetorch.nn.linear import Linear
-from litetorch.nn.activation import ReLU
 from litetorch.data.split import train_val_split
 from litetorch.data.dataloader import DataLoader
 from litetorch.training.trainer import Trainer
+from litetorch.training.callbacks import EarlyStopCallback, TensorboardLoggerCallback
 from .utils.preprocess import preprocess
-from .utils.register import LOSS_REGISTRY, ACTICATION_REGISTRY, OPTIMIZER_REGISTRY
+from .utils.register import LOSS_REGISTRY, OPTIMIZER_REGISTRY
 from .config import TARGET_FEATURE, DATASET_COLUMNS
 
 
 train_cli = typer.Typer()
 
 
-@train_cli.command()
-def start(
-    model_path: str = "saved_models/defined/model.json",
-    output_dir: str = "saved_models/trained",
-    train_filepath: str = "data/split/train_data.npz",
-    epochs: int = 1000,
-    loss_fn: str = "binary_cross_entropy",
-    optimizer_fn: str = "sgd",
-):
-    # Check the input parameters
-    if not os.path.exists(train_filepath):
-        raise FileNotFoundError(f"Train data {train_filepath} not found.")
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Model {model_path} not found.")
-    if loss_fn not in LOSS_REGISTRY.keys():
-        raise ValueError(f"Loss function {loss_fn} is not supported.")
-    if optimizer_fn not in OPTIMIZER_REGISTRY.keys():
-        raise ValueError(f"Optimizer {optimizer_fn} is not supported.")
+def trainer_fn(config: Dict) -> float:
+    train_filepath = config["train_filepath"]
+    model_path = config["model_path"]
+    output_dir = config["output_dir"]
+    epochs = config["epochs"]
+    loss_fn = config["loss_fn"]
+    optimizer_fn = config["optimizer_fn"]
+    callbacks = config["callbacks"]
 
     # Load training data and split into train and validation sets
     data = np.load(train_filepath, allow_pickle=True)["data"]
@@ -77,13 +67,56 @@ def start(
         loss,
         train_loader,
         epochs,
-        val_loader
+        val_loader,
+        callbacks=callbacks,
     )
     trainer.train()
 
     # Save the trained model
     os.makedirs(output_dir, exist_ok=True)
     trainer.save_model(os.path.join(output_dir, f'{trainer}T{datetime.now().strftime("%Y%m%d%H%M%S")}.json'))
+
+
+@train_cli.command()
+def start(
+    model_path: str = "saved_models/defined/model.json",
+    output_dir: str = "saved_models/trained",
+    train_filepath: str = "data/split/train_data.npz",
+    epochs: int = 1000,
+    loss_fn: str = "binary_cross_entropy",
+    optimizer_fn: str = "sgd",
+):
+    # Check the input parameters
+    if not os.path.exists(train_filepath):
+        raise FileNotFoundError(f"Train data {train_filepath} not found.")
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Model {model_path} not found.")
+    if loss_fn not in LOSS_REGISTRY.keys():
+        raise ValueError(f"Loss function {loss_fn} is not supported.")
+    if optimizer_fn not in OPTIMIZER_REGISTRY.keys():
+        raise ValueError(f"Optimizer {optimizer_fn} is not supported.")
+
+    config = {
+        "model_path": model_path,
+        "output_dir": output_dir,
+        "train_filepath": train_filepath,
+        "epochs": epochs,
+        "loss_fn": loss_fn,
+        "optimizer_fn": optimizer_fn,
+        "lr": 0.01,
+        "batch_size": 32,
+        "callbacks": [
+            EarlyStopCallback(patience=10, monitor="val_losses", mode="min"),
+            TensorboardLoggerCallback(
+                log_dir=f"logs/{datetime.now().strftime('%Y%m%d%H')}",
+                metrics={
+                    "Loss/Train": lambda t: t.train_losses[-1],
+                    "Loss/Val": lambda t: t.val_losses[-1] if t.val_losses else None,
+                }
+            )
+        ]
+    }
+    trainer_fn(config)
 
 
 if __name__ == "__main__":
