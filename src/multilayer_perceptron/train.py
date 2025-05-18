@@ -104,7 +104,7 @@ def start(
             "Loss/Val": ValLoss(),
             "Accuracy/Train": TrainAccuracy(),
             "Accuracy/Val": ValAccuracy(),
-            "ConfusionMatrix": ConfusionMatrixImage(),
+            "ConfusionMatrix": ConfusionMatrixImage(class_names=["B", "M"]),
         }
     )
 
