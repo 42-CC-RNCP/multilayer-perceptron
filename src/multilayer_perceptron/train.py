@@ -2,13 +2,14 @@ import os
 import typer
 import numpy as np
 import pandas as pd
-from typing import Dict
+from typing import Dict, Tuple
 from datetime import datetime
 from litetorch.nn.sequential import Sequential
 from litetorch.data.split import train_val_split
 from litetorch.data.dataloader import DataLoader
 from litetorch.training.trainer import Trainer
 from litetorch.training.callbacks import EarlyStopCallback, TensorboardLoggerCallback
+from .metrics import TrainAccuracy, ValAccuracy, TrainLoss, ValLoss
 from .utils.preprocess import preprocess
 from .utils.register import LOSS_REGISTRY, OPTIMIZER_REGISTRY
 from .config import TARGET_FEATURE, DATASET_COLUMNS
@@ -16,8 +17,7 @@ from .config import TARGET_FEATURE, DATASET_COLUMNS
 
 train_cli = typer.Typer()
 
-
-def trainer_fn(config: Dict) -> float:
+def trainer_fn(config: Dict) -> Tuple[float, float]:
     train_filepath = config["train_filepath"]
     model_path = config["model_path"]
     output_dir = config["output_dir"]
@@ -75,6 +75,7 @@ def trainer_fn(config: Dict) -> float:
     # Save the trained model
     os.makedirs(output_dir, exist_ok=True)
     trainer.save_model(os.path.join(output_dir, f'{trainer}T{datetime.now().strftime("%Y%m%d%H%M%S")}.json'))
+    return trainer.train_losses[-1], trainer.val_losses[-1]
 
 
 @train_cli.command()
@@ -96,6 +97,18 @@ def start(
     if optimizer_fn not in OPTIMIZER_REGISTRY.keys():
         raise ValueError(f"Optimizer {optimizer_fn} is not supported.")
 
+    tensorboard_callback = TensorboardLoggerCallback(
+        log_dir=f"logs/{datetime.now().strftime('%Y%m%d%H')}",
+        metrics={
+            "Loss/Train": TrainLoss(),
+            "Loss/Val": ValLoss(),
+            "Accuracy/Train": TrainAccuracy(),
+            "Accuracy/Val": ValAccuracy(),
+        }
+    )
+
+    # Refactor the code to use the trainer function with the config dictionary
+    # TODO: Add tuner to the config
     config = {
         "model_path": model_path,
         "output_dir": output_dir,
@@ -107,16 +120,11 @@ def start(
         "batch_size": 32,
         "callbacks": [
             EarlyStopCallback(patience=10, monitor="val_losses", mode="min"),
-            TensorboardLoggerCallback(
-                log_dir=f"logs/{datetime.now().strftime('%Y%m%d%H')}",
-                metrics={
-                    "Loss/Train": lambda t: t.train_losses[-1],
-                    "Loss/Val": lambda t: t.val_losses[-1] if t.val_losses else None,
-                }
-            )
+            tensorboard_callback,
         ]
     }
-    trainer_fn(config)
+    train_loss, val_loss = trainer_fn(config)
+    print(f"Training completed. Train Loss: {train_loss}, Validation Loss: {val_loss}")
 
 
 if __name__ == "__main__":
