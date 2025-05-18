@@ -9,7 +9,7 @@ from litetorch.data.split import train_val_split
 from litetorch.data.dataloader import DataLoader
 from litetorch.training.trainer import Trainer
 from litetorch.training.callbacks import EarlyStopCallback, TensorboardLoggerCallback
-from .metrics import TrainAccuracy, ValAccuracy, TrainLoss, ValLoss
+from litetorch.metrics import TrainAccuracy, ValAccuracy, TrainLoss, ValLoss, ConfusionMatrixImage
 from .utils.preprocess import preprocess
 from .utils.register import LOSS_REGISTRY, OPTIMIZER_REGISTRY
 from .config import TARGET_FEATURE, DATASET_COLUMNS
@@ -104,6 +104,7 @@ def start(
             "Loss/Val": ValLoss(),
             "Accuracy/Train": TrainAccuracy(),
             "Accuracy/Val": ValAccuracy(),
+            "ConfusionMatrix": ConfusionMatrixImage(),
         }
     )
 
