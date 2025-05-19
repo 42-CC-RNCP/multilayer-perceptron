@@ -2,7 +2,7 @@ import os
 import typer
 import numpy as np
 import pandas as pd
-from litetorch.data.split import train_test_split
+from sklite.preprocessing.split import train_test_split
 
 
 split_cli = typer.Typer()
