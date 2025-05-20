@@ -26,6 +26,8 @@ clean:
 	@find . -type f -name "*.npz" -exec rm -rf {} +
 	@find . -type f -name "*.npy" -exec rm -rf {} +
 	@find . -type d -name "trained" -exec rm -rf {} +
+	@find . -type d -name "predicted" -exec rm -rf {} +
+	@find . -type d -name "logs" -exec rm -rf {} +
 	@find . -type d -empty -delete
 
 fclean: clean
