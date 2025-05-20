@@ -5,7 +5,7 @@ import pandas as pd
 from typing import Dict, Tuple
 from datetime import datetime
 from litetorch.nn.sequential import Sequential
-from sklite.preprocessing.split import train_val_split
+from sklite.split import TrainValSplitter
 from litetorch.data.dataloader import DataLoader
 from litetorch.training.trainer import Trainer
 from litetorch.training.callbacks import EarlyStopCallback, TensorboardLoggerCallback
@@ -32,7 +32,9 @@ def trainer_fn(config: Dict) -> Tuple[float, float]:
 
     # Preprocess the data
     data = preprocess(data)
-    train_data, val_data = train_val_split(data, val_size=0.2, shuffle=False)
+    
+    splitter = TrainValSplitter(val_size=0.2, shuffle=False)
+    train_data, _, val_data, _ = splitter.split(data)
     train_data = pd.DataFrame(train_data, columns=data.columns)
     val_data = pd.DataFrame(val_data, columns=data.columns)
 

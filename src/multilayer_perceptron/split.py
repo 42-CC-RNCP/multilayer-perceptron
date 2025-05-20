@@ -2,7 +2,7 @@ import os
 import typer
 import numpy as np
 import pandas as pd
-from sklite.preprocessing.split import train_test_split
+from sklite.split import TrainTestSplitter
 
 
 split_cli = typer.Typer()
@@ -24,7 +24,9 @@ def start(
     print(f"Splitting the dataset {dataset} saving to {output_dir}...")
     df = pd.read_csv(dataset)
     data = df.values
-    train_data, test_data = train_test_split(data, test_size, shuffle=False)
+    
+    splitter = TrainTestSplitter(test_size=test_size, shuffle=False)
+    train_data, _, test_data, _ = splitter.split(data)
 
     # Save the train and validation data as npy files
     np.savez(
