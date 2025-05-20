@@ -2,7 +2,8 @@ import os
 import typer
 import numpy as np
 import pandas as pd
-from sklite.split import TrainTestSplitter
+from sklite.split import StratifiedSplitter
+from .config import TARGET_FEATURE, DATASET_COLUMNS
 
 
 split_cli = typer.Typer()
@@ -22,11 +23,10 @@ def start(
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     print(f"Splitting the dataset {dataset} saving to {output_dir}...")
-    df = pd.read_csv(dataset)
-    data = df.values
+    df = pd.read_csv(dataset, header=None, names=DATASET_COLUMNS)
     
-    splitter = TrainTestSplitter(test_size=test_size, shuffle=False)
-    train_data, _, test_data, _ = splitter.split(data)
+    splitter = StratifiedSplitter(test_size=test_size, shuffle=False, random_state=42)
+    train_data, _, test_data, _ = splitter.split(df, df[TARGET_FEATURE])
 
     # Save the train and validation data as npy files
     np.savez(
@@ -40,7 +40,7 @@ def start(
         columns=df.columns.to_numpy()
     )
     print(f"Train and validation data saved to {output_dir}.")
-    print(f"Original data shape: {data.shape}")
+    print(f"Original data shape: {df.shape}")
     print(f"Train data shape: {train_data.shape}")
     print(f"Test data shape: {test_data.shape}")
     print(f"Train data output path: {os.path.join(output_dir, 'train_data.npz')}")

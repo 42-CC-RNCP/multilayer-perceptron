@@ -5,7 +5,7 @@ import pandas as pd
 from typing import Dict, Tuple
 from datetime import datetime
 from litetorch.nn.sequential import Sequential
-from sklite.split import TrainValSplitter
+from sklite.split import StratifiedSplitter
 from litetorch.data.dataloader import DataLoader
 from litetorch.training.trainer import Trainer
 from litetorch.training.callbacks import EarlyStopCallback, TensorboardLoggerCallback
@@ -33,8 +33,8 @@ def trainer_fn(config: Dict) -> Tuple[float, float]:
     # Preprocess the data
     data = preprocess(data)
     
-    splitter = TrainValSplitter(val_size=0.2, shuffle=False)
-    train_data, _, val_data, _ = splitter.split(data)
+    splitter = StratifiedSplitter(test_size=0.2, shuffle=False)
+    train_data, _, val_data, _ = splitter.split(data, data[TARGET_FEATURE])
     train_data = pd.DataFrame(train_data, columns=data.columns)
     val_data = pd.DataFrame(val_data, columns=data.columns)
 
@@ -106,7 +106,7 @@ def start(
             "Loss/Val": ValLoss(),
             "Accuracy/Train": TrainAccuracy(),
             "Accuracy/Val": ValAccuracy(),
-            "ConfusionMatrix": ConfusionMatrixImage(class_names=["B", "M"]),
+            # "ConfusionMatrix": ConfusionMatrixImage(class_names=["B", "M"]),
         }
     )
 
