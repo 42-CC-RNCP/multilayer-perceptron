@@ -32,7 +32,7 @@ def trainer_fn(config: Dict) -> Tuple[float, float]:
 
     # Preprocess the data
     data = preprocess(data)
-    
+
     splitter = StratifiedSplitter(test_size=0.2, shuffle=False)
     train_data, _, val_data, _ = splitter.split(data, data[TARGET_FEATURE])
     train_data = pd.DataFrame(train_data, columns=data.columns)
@@ -62,6 +62,8 @@ def trainer_fn(config: Dict) -> Tuple[float, float]:
     optimizer = OPTIMIZER_REGISTRY[optimizer_fn](model.parameters())
     loss = LOSS_REGISTRY[loss_fn]()
 
+    # Switch the model to training mode
+    model.train()
     # Create the trainer and start training
     trainer = Trainer(
         model,
