@@ -1,5 +1,5 @@
 from litetorch.nn.loss import *
-from litetorch.optim.SGD import SGD
+from litetorch.optim import *
 from litetorch.nn.activation import *
 
 
@@ -11,6 +11,7 @@ LOSS_REGISTRY = {
 
 OPTIMIZER_REGISTRY = {
     "sgd": SGD,
+    "adam": Adam,
 }
 
 ACTICATION_REGISTRY = {
