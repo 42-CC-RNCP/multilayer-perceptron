@@ -1,0 +1,23 @@
+{
+    "architecture": [
+        {
+            "type": "Linear",
+            "in_features": 30,
+            "out_features": 5,
+            "bias": true
+        },
+        {
+            "type": "ReLU"
+        },
+        {
+            "type": "Linear",
+            "in_features": 5,
+            "out_features": 1,
+            "bias": true
+        },
+        {
+            "type": "Sigmoid"
+        }
+    ],
+    "parameters": {}
+}
